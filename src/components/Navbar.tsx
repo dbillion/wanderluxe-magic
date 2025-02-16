@@ -11,8 +11,12 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { UserCircle } from "lucide-react";
 
 const Navbar = () => {
+  const { isAuthenticated, username, logout } = useAuth();
+
   return (
     <header className="fixed w-full top-0 z-50 bg-white/80 backdrop-blur-md border-b">
       <div className="container mx-auto px-4">
@@ -66,13 +70,27 @@ const Navbar = () => {
             </NavigationMenuList>
           </NavigationMenu>
 
-          <div className="flex gap-4">
-            <Button variant="ghost" asChild>
-              <Link to="/login">Login</Link>
-            </Button>
-            <Button className="bg-primary text-white hover:bg-primary/90" asChild>
-              <Link to="/signup">Sign Up</Link>
-            </Button>
+          <div className="flex gap-4 items-center">
+            {isAuthenticated ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <UserCircle className="w-5 h-5" />
+                  <span className="text-sm font-medium">{username}</span>
+                </div>
+                <Button variant="ghost" onClick={logout}>
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link to="/login">Login</Link>
+                </Button>
+                <Button className="bg-primary text-white hover:bg-primary/90" asChild>
+                  <Link to="/signup">Sign Up</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>

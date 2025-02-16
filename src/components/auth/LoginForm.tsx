@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface LoginFormValues {
   email: string;
@@ -22,10 +23,12 @@ interface LoginFormValues {
 const LoginForm = () => {
   const navigate = useNavigate();
   const form = useForm<LoginFormValues>();
+  const { login } = useAuth();
 
   const onSubmit = async (data: LoginFormValues) => {
-    // TODO: Implement Supabase authentication
+    // TODO: Replace with actual authentication
     console.log("Login data:", data);
+    login(data.email.split('@')[0]); // Use username part of email temporarily
     toast.success("Welcome back! You're now logged in.");
     navigate("/planner");
   };
