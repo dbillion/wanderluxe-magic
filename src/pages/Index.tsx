@@ -8,7 +8,7 @@ const Index = () => {
       <Navbar />
       
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 bg-gradient-to-b from-secondary to-white">
+      <section className="pt-32 pb-20 px-4 bg-gradient-to-b from-secondary to-white py-[223px]">
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row items-center gap-12">
             <div className="flex-1 space-y-6 animate-fade-up">
@@ -36,7 +36,7 @@ const Index = () => {
       </section>
 
       {/* Services Section */}
-      <section className="py-20 px-4 bg-yellow-800 hover:bg-yellow-700">
+      <section className="bg-yellow-800 hover:bg-yellow-700 mx-0 my-[12px] px-[26px] py-[41px] rounded-none">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Your Journey Starts Here</h2>
