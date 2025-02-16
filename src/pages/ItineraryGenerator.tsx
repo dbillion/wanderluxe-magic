@@ -12,8 +12,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-// Add type imports
-import type { Activity, Attraction, DayItinerary, Hotel, ItineraryResponse } from '@/services/groqService';
+// Import types
+import type { DayItinerary, ItineraryResponse } from '@/services/groqService';
 
 const ItineraryGenerator = () => {
   const { isAuthenticated } = useAuth();
@@ -66,199 +66,176 @@ const ItineraryGenerator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div>
+      {/* Navbar */}
       <Navbar />
-      <div className="pt-32 container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold mb-8">AI Travel Planner</h1>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Form Section */}
+      {/* Form Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>AI Travel Planner</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit}>
+            <Label>Destination</Label>
+            <Input
+              value={formData.destination}
+              onChange={(e) =>
+                setFormData({ ...formData, destination: e.target.value })
+              }
+            />
+
+            <Label>Trip Duration (days)</Label>
+            <Slider
+              value={[formData.duration]}
+              onChange={(value) =>
+                setFormData({ ...formData, duration: value[0] })
+              }
+              min={1}
+              max={30}
+            />
+            <p>{formData.duration} days</p>
+
+            <Label>Budget (USD)</Label>
+            <Slider
+              value={[formData.budget]}
+              onChange={(value) =>
+                setFormData({ ...formData, budget: value[0] })
+              }
+              min={100}
+              max={10000}
+              step={100}
+            />
+            <p>${formData.budget}</p>
+
+            <Label>Main Interest</Label>
+            <Select
+              value={formData.interests}
+              onValueChange={(value) =>
+                setFormData({ ...formData, interests: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select an interest" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="culture">Culture & History</SelectItem>
+                <SelectItem value="nature">Nature & Adventure</SelectItem>
+                <SelectItem value="food">Food & Cuisine</SelectItem>
+                <SelectItem value="relaxation">Relaxation & Wellness</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Button type="submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating Itinerary...
+                </>
+              ) : (
+                "Generate Itinerary"
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Itinerary Display */}
+      {itineraryData && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Custom Itinerary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* Budget Overview */}
             <Card>
               <CardHeader>
-                <CardTitle>Plan Your Trip</CardTitle>
+                <CardTitle>Budget Overview</CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="destination">Destination</Label>
-                    <Input
-                      id="destination"
-                      placeholder="Enter city or country"
-                      value={formData.destination}
-                      onChange={(e) =>
-                        setFormData({ ...formData, destination: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Trip Duration (days)</Label>
-                    <Slider
-                      value={[formData.duration]}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, duration: value[0] })
-                      }
-                      min={1}
-                      max={30}
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      {formData.duration} days
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Budget (USD)</Label>
-                    <Slider
-                      value={[formData.budget]}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, budget: value[0] })
-                      }
-                      min={100}
-                      max={10000}
-                      step={100}
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      ${formData.budget}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Main Interest</Label>
-                    <Select
-                      value={formData.interests}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, interests: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select interest" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="culture">Culture & History</SelectItem>
-                        <SelectItem value="nature">Nature & Adventure</SelectItem>
-                        <SelectItem value="food">Food & Cuisine</SelectItem>
-                        <SelectItem value="relaxation">
-                          Relaxation & Wellness
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Generating Itinerary...
-                      </>
-                    ) : (
-                      "Generate Itinerary"
-                    )}
-                  </Button>
-                </form>
+                <p>Total Budget: ${formData.budget}</p>
+                <p>Total Cost: ${itineraryData.budgetBreakdown.totalCost}</p>
+                <p>Remaining: ${itineraryData.budgetBreakdown.remaining}</p>
               </CardContent>
             </Card>
 
-            {/* Itinerary Display */}
-            {itineraryData && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Your Custom Itinerary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-8">
-                  {/* Budget Overview */}
-                  <div className="mb-8 p-4 bg-muted rounded-lg">
-                    <h2 className="text-xl font-semibold mb-4">Budget Overview</h2>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="space-y-2">
-                        <p className="text-sm">
-                          <span className="font-medium">Total Budget:</span> ${formData.budget}
-                        </p>
-                        <p className="text-sm">
-                          <span className="font-medium">Total Cost:</span> ${itineraryData.budgetBreakdown.totalCost}
-                        </p>
-                        <p className="text-sm text-green-600">
-                          <span className="font-medium">Remaining:</span> ${itineraryData.budgetBreakdown.remaining}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Daily Itinerary */}
-                  <div>
-                    <h2 className="text-xl font-semibold mb-4">Daily Itinerary</h2>
-                    {itineraryData.dailyItinerary.map((day: DayItinerary) => (
-                      <div key={day.day} className="mb-6 p-4 border rounded-md shadow-sm hover:shadow-lg transition duration-300">
-                        <h3 className="text-lg font-medium mb-2">Day {day.day}</h3>
-                        <div className="space-y-4">
-                          {day.activities.map((activity: Activity, idx: number) => (
-                            <div key={idx} className="flex flex-col space-y-1">
-                              <span className="font-medium capitalize">{activity.time}:</span>
-                              <p className="text-gray-600">{activity.description}</p>
-                              {activity.cost && (
-                                <p className="text-sm text-gray-500">Cost: ${activity.cost}</p>
-                              )}
-                            </div>
-                          ))}
-                          <div className="mt-4 pt-4 border-t">
-                            <p className="text-sm font-medium">Daily Budget:</p>
-                            <ul className="text-sm text-gray-600 mt-1">
-                              <li>Accommodation: ${day.budget.accommodation}</li>
-                              <li>Food: ${day.budget.food}</li>
-                              <li>Transportation: ${day.budget.transportation}</li>
-                              <li>Activities: ${day.budget.activities}</li>
-                              <li className="font-medium">Total: ${day.budget.total}</li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
+            {/* Daily Itinerary */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Daily Itinerary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {itineraryData.dailyItinerary.map((day: DayItinerary) => (
+                  <div key={day.day}>
+                    <h3>Day {day.day}</h3>
+                    {day.activities.map((activity, idx) => (
+                      <p key={idx}>
+                        {activity.time}: {activity.description}
+                        {activity.cost && <span> Cost: ${activity.cost}</span>}
+                      </p>
                     ))}
+                    <p>
+                      Daily Budget:
+                      <br />
+                      Accommodation: ${day.budget.accommodation}
+                      <br />
+                      Food: ${day.budget.food}
+                      <br />
+                      Transportation: ${day.budget.transportation}
+                      <br />
+                      Activities: ${day.budget.activities}
+                      <br />
+                      Total: ${day.budget.total}
+                    </p>
                   </div>
+                ))}
+              </CardContent>
+            </Card>
 
-                  {/* Hotel Recommendations */}
-                  <div>
-                    <h2 className="text-xl font-semibold mb-4">Hotel Recommendations</h2>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {itineraryData.hotelRecommendations.map((hotel: Hotel) => (
-                        <div key={hotel.name} className="p-4 border rounded-md">
-                          <h3 className="font-medium">{hotel.name}</h3>
-                          <p className="text-sm text-gray-500 mt-2">
-                            ${hotel.pricePerNight}/night
-                          </p>
-                          <p className="text-sm text-gray-500">Location: {hotel.location}</p>
-                          <p className="text-sm text-gray-500">Rating: {hotel.rating}/5</p>
-                        </div>
-                      ))}
-                    </div>
+            {/* Hotel Recommendations */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Hotel Recommendations</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {itineraryData.hotelRecommendations.map((hotel) => (
+                  <div key={hotel.name}>
+                    <p>{hotel.name}</p>
+                    <p>${hotel.pricePerNight}/night</p>
+                    <p>Location: {hotel.location}</p>
+                    <p>Rating: {hotel.rating}/5</p>
                   </div>
+                ))}
+              </CardContent>
+            </Card>
 
-                  {/* Must-See Attractions */}
-                  <div>
-                    <h2 className="text-xl font-semibold mb-4">Must-See Attractions</h2>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {itineraryData.mustSeeAttractions.map((attraction: Attraction) => (
-                        <div key={attraction.name} className="p-4 border rounded-md">
-                          <h3 className="font-medium">{attraction.name}</h3>
-                          <p className="text-sm text-gray-600">Duration: {attraction.suggestedDuration}</p>
-                          <p className="text-sm text-gray-500">Cost: ${attraction.estimatedCost}</p>
-                        </div>
-                      ))}
-                    </div>
+            {/* Must-See Attractions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Must-See Attractions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {itineraryData.mustSeeAttractions.map((attraction) => (
+                  <div key={attraction.name}>
+                    <p>{attraction.name}</p>
+                    <p>Duration: {attraction.suggestedDuration}</p>
+                    <p>Cost: ${attraction.estimatedCost}</p>
                   </div>
+                ))}
+              </CardContent>
+            </Card>
 
-                  {/* Actions */}
-                  <div className="flex gap-4 mt-6">
-                    <Button onClick={handleSave} variant="outline" className="flex-1">
-                      <Save className="mr-2 h-4 w-4" />
-                      Save
-                    </Button>
-                    <Button onClick={handleShare} variant="outline" className="flex-1">
-                      <Share2 className="mr-2 h-4 w-4" />
-                      Share
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
-      </div>
+            {/* Actions */}
+            <div>
+              <Button onClick={handleSave}>
+                <Save className="mr-2 h-4 w-4" /> Save
+              </Button>
+              <Button onClick={handleShare}>
+                <Share2 className="mr-2 h-4 w-4" /> Share
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
