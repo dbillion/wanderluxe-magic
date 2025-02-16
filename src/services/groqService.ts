@@ -10,7 +10,7 @@ interface TripParams {
 
 export const generateItinerary = async (params: TripParams): Promise<string> => {
   const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY
+    apiKey: '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'
   });
 
   const prompt = `As an AI travel planner, create a detailed ${params.duration}-day itinerary for a trip to ${params.destination} with a budget of $${params.budget}. The traveler is interested in ${params.interests}. Include daily activities, recommended places to visit, and estimated timing. Format the response in a clear, day-by-day structure.`;
