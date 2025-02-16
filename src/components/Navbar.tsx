@@ -10,6 +10,7 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   return (
@@ -66,8 +67,12 @@ const Navbar = () => {
           </NavigationMenu>
 
           <div className="flex gap-4">
-            <Button variant="ghost">Login</Button>
-            <Button className="bg-primary text-white hover:bg-primary/90">Sign Up</Button>
+            <Button variant="ghost" asChild>
+              <Link to="/login">Login</Link>
+            </Button>
+            <Button className="bg-primary text-white hover:bg-primary/90" asChild>
+              <Link to="/signup">Sign Up</Link>
+            </Button>
           </div>
         </div>
       </div>

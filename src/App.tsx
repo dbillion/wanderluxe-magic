@@ -14,6 +14,8 @@ import Contact from "./pages/Contact";
 import Blog from "./pages/Blog";
 import BestDeals from "./pages/BestDeals";
 import ItineraryGenerator from "./pages/ItineraryGenerator";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +35,8 @@ const App = () => (
           <Route path="/blog" element={<Blog />} />
           <Route path="/deals" element={<BestDeals />} />
           <Route path="/planner" element={<ItineraryGenerator />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
