@@ -7,58 +7,130 @@ interface TripParams {
   interests: string;
 }
 
-export const generateItinerary = async (params: TripParams): Promise<object> => {
-  const groq = new Groq({
-    apiKey: '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',
-    dangerouslyAllowBrowser: true,
-  });
+interface Activity {
+  time: string;
+  description: string;
+  cost?: number;
+}
 
-  const prompt = `As an AI travel planner, create a detailed ${params.duration}-day itinerary for a trip to ${params.destination} with a budget of $${params.budget}. The traveler is interested in ${params.interests}.
-  
-Return the result as a JSON object with the following fields:
-1. "dailyItinerary": An array of objects, each representing a day.
-2. "hotelRecommendations": An array of hotel recommendations.
-3. "mustSeeAttractions": An array of must-see attractions.`;
+interface DayItinerary {
+  day: number;
+  activities: Activity[];
+  budget: {
+    accommodation: number;
+    food: number;
+    transportation: number;
+    activities: number;
+    total: number;
+  };
+}
+
+interface Hotel {
+  name: string;
+  pricePerNight: number;
+  location: string;
+  rating: number;
+}
+
+interface Attraction {
+  name: string;
+  estimatedCost: number;
+  suggestedDuration: string;
+}
+
+interface ItineraryResponse {
+  dailyItinerary: DayItinerary[];
+  hotelRecommendations: Hotel[];
+  mustSeeAttractions: Attraction[];
+  budgetBreakdown: {
+    totalCost: number;
+    remaining: number;
+  };
+}
+
+const getDefaultActivity = (day: number): Activity => ({
+  time: 'all-day',
+  description: `Day ${day} activities to be planned`,
+  cost: 0
+});
+
+const cleanJSON = (text: string): string => {
+  const cleanup = text
+    .replace(/<think>.*?<\/think>/gs, '')
+    .replace(/^[^{]*/, '')
+    .replace(/```(?:json)?\s*([\s\S]*?)\s*```/, '$1')
+    .replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3')
+    .replace(/,(\s*[}\]])/g, '$1')
+    .replace(/"?\$(\d+(?:\.\d+)?)"?/g, '$1');
 
   try {
-    const completion = await groq.chat.completions.create({
+    return JSON.stringify(JSON.parse(cleanup));
+  } catch {
+    return JSON.stringify({
+      dailyItinerary: [],
+      hotelRecommendations: [],
+      mustSeeAttractions: [],
+      budgetBreakdown: { totalCost: 0, remaining: 0 }
+    });
+  }
+};
+
+export const generateItinerary = async (params: TripParams): Promise<ItineraryResponse> => {
+  const groq = new Groq({
+    apiKey: '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',
+    dangerouslyAllowBrowser: true
+  });
+
+  try {
+    const { choices: [message] } = await groq.chat.completions.create({
       messages: [
-        {
-          role: 'system',
-          content:
-            'You are an experienced travel planner who creates detailed, personalized travel itineraries.',
+        { 
+          role: 'system', 
+          content: 'Return ONLY valid JSON for a travel itinerary without markdown or extra text.' 
         },
-        {
-          role: 'user',
-          content: prompt,
-        },
+        { 
+          role: 'user', 
+          content: `Create a ${params.duration}-day ${params.destination} itinerary for $${params.budget} focusing on ${params.interests}.` 
+        }
       ],
       model: 'deepseek-r1-distill-llama-70b',
-      temperature: 0.6,
-      max_tokens: 4096,
-      top_p: 0.95,
-      stream: false,
+      temperature: 0.7,
+      stream: false
     });
 
-    let rawOutput = completion.choices[0]?.message?.content || 'Could not generate itinerary';
-    console.log("Raw Output:", rawOutput);
+    const parsed = JSON.parse(cleanJSON(message?.content || ''));
+    const dailyBudget = params.budget / params.duration;
 
-    // Remove any <think> ... </think> blocks
-    let cleanedOutput = rawOutput.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
-
-    // If the JSON is wrapped in markdown code fences, extract the JSON portion.
-    const codeBlockRegex = /```json\s*([\s\S]*?)\s*```/;
-    const codeBlockMatch = cleanedOutput.match(codeBlockRegex);
-    if (codeBlockMatch && codeBlockMatch[1]) {
-      cleanedOutput = codeBlockMatch[1].trim();
-    }
-
-    return JSON.parse(cleanedOutput);
-  } catch (error: any) {
+    return {
+      dailyItinerary: Array.from({ length: params.duration }, (_, i) => ({
+        day: i + 1,
+        activities: parsed.dailyItinerary?.[i]?.activities || [getDefaultActivity(i + 1)],
+        budget: {
+          accommodation: parsed.dailyItinerary?.[i]?.budget?.accommodation || dailyBudget * 0.4,
+          food: parsed.dailyItinerary?.[i]?.budget?.food || dailyBudget * 0.2,
+          transportation: parsed.dailyItinerary?.[i]?.budget?.transportation || dailyBudget * 0.15,
+          activities: parsed.dailyItinerary?.[i]?.budget?.activities || dailyBudget * 0.15,
+          total: dailyBudget
+        }
+      })),
+      hotelRecommendations: (parsed.hotelRecommendations || []).slice(0, 3).map((h: any) => ({
+        name: h?.name || 'Standard Hotel',
+        pricePerNight: Number(h?.pricePerNight) || dailyBudget * 0.4,
+        location: h?.location || params.destination,
+        rating: Math.min(Number(h?.rating) || 3, 5)
+      })),
+      mustSeeAttractions: (parsed.mustSeeAttractions || []).slice(0, 5).map((a: any) => ({
+        name: a?.name || 'Local Attraction',
+        estimatedCost: Number(a?.estimatedCost) || dailyBudget * 0.1,
+        suggestedDuration: a?.suggestedDuration || '1-2 hours'
+      })),
+      budgetBreakdown: {
+        totalCost: parsed.budgetBreakdown?.totalCost || params.budget * 0.9,
+        remaining: parsed.budgetBreakdown?.remaining || params.budget * 0.1
+      }
+    };
+  } catch (error) {
     console.error('Error generating itinerary:', error);
-    if (error.response) {
-      console.error('Response data:', error.response.data);
-    }
-    throw new Error('Failed to generate itinerary');
+    throw new Error('Failed to generate travel plan');
   }
 };

@@ -12,11 +12,14 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
+// Add type imports
+import type { Activity, Attraction, DayItinerary, Hotel, ItineraryResponse } from '@/services/groqService';
+
 const ItineraryGenerator = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [itineraryData, setItineraryData] = useState<any | null>(null);
+  const [itineraryData, setItineraryData] = useState<ItineraryResponse | null>(null);
   const [formData, setFormData] = useState({
     destination: "",
     duration: 7,
@@ -70,14 +73,13 @@ const ItineraryGenerator = () => {
           <h1 className="text-4xl font-bold mb-8">AI Travel Planner</h1>
 
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Left Column: Form */}
+            {/* Form Section */}
             <Card>
               <CardHeader>
                 <CardTitle>Plan Your Trip</CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Input Fields */}
                   <div className="space-y-2">
                     <Label htmlFor="destination">Destination</Label>
                     <Input
@@ -153,43 +155,57 @@ const ItineraryGenerator = () => {
               </CardContent>
             </Card>
 
-            {/* Right Column: Itinerary Display */}
+            {/* Itinerary Display */}
             {itineraryData && (
               <Card>
                 <CardHeader>
                   <CardTitle>Your Custom Itinerary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-8">
+                  {/* Budget Overview */}
+                  <div className="mb-8 p-4 bg-muted rounded-lg">
+                    <h2 className="text-xl font-semibold mb-4">Budget Overview</h2>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <p className="text-sm">
+                          <span className="font-medium">Total Budget:</span> ${formData.budget}
+                        </p>
+                        <p className="text-sm">
+                          <span className="font-medium">Total Cost:</span> ${itineraryData.budgetBreakdown.totalCost}
+                        </p>
+                        <p className="text-sm text-green-600">
+                          <span className="font-medium">Remaining:</span> ${itineraryData.budgetBreakdown.remaining}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Daily Itinerary */}
                   <div>
                     <h2 className="text-xl font-semibold mb-4">Daily Itinerary</h2>
-                    {itineraryData.dailyItinerary?.map((day: any, index: number) => (
-                      <div key={index} className="mb-6 p-4 border rounded-md shadow-sm hover:shadow-lg transition duration-300">
+                    {itineraryData.dailyItinerary.map((day: DayItinerary) => (
+                      <div key={day.day} className="mb-6 p-4 border rounded-md shadow-sm hover:shadow-lg transition duration-300">
                         <h3 className="text-lg font-medium mb-2">Day {day.day}</h3>
-                        <div className="space-y-2">
-                          {Array.isArray(day.activities) ? (
-                            // Handle array of activities
-                            <ul className="list-disc pl-4 space-y-1">
-                              {day.activities.map((activity: string, idx: number) => (
-                                <li key={idx}>{activity}</li>
-                              ))}
+                        <div className="space-y-4">
+                          {day.activities.map((activity: Activity, idx: number) => (
+                            <div key={idx} className="flex flex-col space-y-1">
+                              <span className="font-medium capitalize">{activity.time}:</span>
+                              <p className="text-gray-600">{activity.description}</p>
+                              {activity.cost && (
+                                <p className="text-sm text-gray-500">Cost: ${activity.cost}</p>
+                              )}
+                            </div>
+                          ))}
+                          <div className="mt-4 pt-4 border-t">
+                            <p className="text-sm font-medium">Daily Budget:</p>
+                            <ul className="text-sm text-gray-600 mt-1">
+                              <li>Accommodation: ${day.budget.accommodation}</li>
+                              <li>Food: ${day.budget.food}</li>
+                              <li>Transportation: ${day.budget.transportation}</li>
+                              <li>Activities: ${day.budget.activities}</li>
+                              <li className="font-medium">Total: ${day.budget.total}</li>
                             </ul>
-                          ) : (
-                            // Handle object with morning/afternoon/evening
-                            <ul className="space-y-2">
-                              {Object.entries(day.activities).map(([time, activity]: [string, any]) => (
-                                <li key={time} className="flex flex-col">
-                                  <span className="font-medium capitalize">{time}:</span>
-                                  <span className="text-gray-600">{activity}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                          {day.budget && (
-                            <p className="mt-2 text-sm text-gray-500">
-                              Budget: ${day.budget}
-                            </p>
-                          )}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -199,16 +215,14 @@ const ItineraryGenerator = () => {
                   <div>
                     <h2 className="text-xl font-semibold mb-4">Hotel Recommendations</h2>
                     <div className="grid gap-4 sm:grid-cols-2">
-                      {itineraryData.hotelRecommendations?.map((hotel: any, index: number) => (
-                        <div key={index} className="p-4 border rounded-md">
+                      {itineraryData.hotelRecommendations.map((hotel: Hotel) => (
+                        <div key={hotel.name} className="p-4 border rounded-md">
                           <h3 className="font-medium">{hotel.name}</h3>
-                          <p className="text-sm text-gray-600 mt-1">{hotel.description}</p>
                           <p className="text-sm text-gray-500 mt-2">
-                            {hotel.priceRange || `Price: ${hotel.price}`}
+                            ${hotel.pricePerNight}/night
                           </p>
-                          {hotel.location && (
-                            <p className="text-sm text-gray-500">Location: {hotel.location}</p>
-                          )}
+                          <p className="text-sm text-gray-500">Location: {hotel.location}</p>
+                          <p className="text-sm text-gray-500">Rating: {hotel.rating}/5</p>
                         </div>
                       ))}
                     </div>
@@ -218,10 +232,11 @@ const ItineraryGenerator = () => {
                   <div>
                     <h2 className="text-xl font-semibold mb-4">Must-See Attractions</h2>
                     <div className="grid gap-4 sm:grid-cols-2">
-                      {itineraryData.mustSeeAttractions?.map((attraction: any, index: number) => (
-                        <div key={index} className="p-4 border rounded-md">
+                      {itineraryData.mustSeeAttractions.map((attraction: Attraction) => (
+                        <div key={attraction.name} className="p-4 border rounded-md">
                           <h3 className="font-medium">{attraction.name}</h3>
-                          <p className="text-sm text-gray-600 mt-1">{attraction.description}</p>
+                          <p className="text-sm text-gray-600">Duration: {attraction.suggestedDuration}</p>
+                          <p className="text-sm text-gray-500">Cost: ${attraction.estimatedCost}</p>
                         </div>
                       ))}
                     </div>
