@@ -1,19 +1,13 @@
-import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { useAuth } from "@/contexts/AuthContext";
 import { generateItinerary } from "@/services/groqService";
-import { Loader2, Save, Share2 } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 // Import types
-import type { DayItinerary, ItineraryResponse } from '@/services/groqService';
+import type { ItineraryResponse } from '@/services/groqService';
 
 const ItineraryGenerator = () => {
   const { isAuthenticated } = useAuth();
@@ -67,78 +61,6 @@ const ItineraryGenerator = () => {
 
   return (
     <div>
-      {/* Navbar */}
-      <Navbar />
-
-      {/* Form Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>AI Travel Planner</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit}>
-            <Label>Destination</Label>
-            <Input
-              value={formData.destination}
-              onChange={(e) =>
-                setFormData({ ...formData, destination: e.target.value })
-              }
-            />
-
-            <Label>Trip Duration (days)</Label>
-            <Slider
-              value={[formData.duration]}
-              onChange={(value) =>
-                setFormData({ ...formData, duration: value[0] })
-              }
-              min={1}
-              max={30}
-            />
-            <p>{formData.duration} days</p>
-
-            <Label>Budget (USD)</Label>
-            <Slider
-              value={[formData.budget]}
-              onChange={(value) =>
-                setFormData({ ...formData, budget: value[0] })
-              }
-              min={100}
-              max={10000}
-              step={100}
-            />
-            <p>${formData.budget}</p>
-
-            <Label>Main Interest</Label>
-            <Select
-              value={formData.interests}
-              onValueChange={(value) =>
-                setFormData({ ...formData, interests: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select an interest" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="culture">Culture & History</SelectItem>
-                <SelectItem value="nature">Nature & Adventure</SelectItem>
-                <SelectItem value="food">Food & Cuisine</SelectItem>
-                <SelectItem value="relaxation">Relaxation & Wellness</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button type="submit" disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating Itinerary...
-                </>
-              ) : (
-                "Generate Itinerary"
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
       {/* Itinerary Display */}
       {itineraryData && (
         <Card>
@@ -157,20 +79,20 @@ const ItineraryGenerator = () => {
                 <p>Remaining: ${itineraryData.budgetBreakdown.remaining}</p>
               </CardContent>
             </Card>
-
+  
             {/* Daily Itinerary */}
             <Card>
               <CardHeader>
                 <CardTitle>Daily Itinerary</CardTitle>
               </CardHeader>
               <CardContent>
-                {itineraryData.dailyItinerary.map((day: DayItinerary) => (
+                {itineraryData.dailyItinerary.map((day) => (
                   <div key={day.day}>
-                    <h3>Day {day.day}</h3>
+                    <h3>Day {day.day}: {day.location}</h3>
                     {day.activities.map((activity, idx) => (
                       <p key={idx}>
                         {activity.time}: {activity.description}
-                        {activity.cost && <span> Cost: ${activity.cost}</span>}
+                        {activity.cost > 0 && <span> Cost: ${activity.cost}</span>}
                       </p>
                     ))}
                     <p>
@@ -190,7 +112,7 @@ const ItineraryGenerator = () => {
                 ))}
               </CardContent>
             </Card>
-
+  
             {/* Hotel Recommendations */}
             <Card>
               <CardHeader>
@@ -207,7 +129,7 @@ const ItineraryGenerator = () => {
                 ))}
               </CardContent>
             </Card>
-
+  
             {/* Must-See Attractions */}
             <Card>
               <CardHeader>
@@ -223,14 +145,14 @@ const ItineraryGenerator = () => {
                 ))}
               </CardContent>
             </Card>
-
+  
             {/* Actions */}
             <div>
               <Button onClick={handleSave}>
-                <Save className="mr-2 h-4 w-4" /> Save
+                Save
               </Button>
               <Button onClick={handleShare}>
-                <Share2 className="mr-2 h-4 w-4" /> Share
+                Share
               </Button>
             </div>
           </CardContent>

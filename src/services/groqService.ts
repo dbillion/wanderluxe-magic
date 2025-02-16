@@ -49,8 +49,15 @@ interface ItineraryResponse {
   };
 }
 
+// Add this helper function at the top with other interfaces
+const getDefaultActivity = (dayNum: number): Activity => ({
+  time: 'all-day',
+  description: `Day ${dayNum} activities to be planned`,
+  cost: 0
+});
+
 // Helper function to clean and parse the generated JSON
-const cleanJSON = (text: string): string => {
+const cleanJSON = (text) => {
   const cleanup = text
     .replace(/<.*?>/g, '') // Remove HTML-like tags
     .replace(/^[^{]*/, '') // Remove everything before the first `{`
@@ -60,21 +67,17 @@ const cleanJSON = (text: string): string => {
     .replace(/"?\$(\d+(?:\.\d+)?)"?/g, '$1'); // Normalize currency
 
   try {
-    return JSON.stringify(JSON.parse(cleanup));
-  } catch {
-    return JSON.stringify({
-      dailyItinerary: [],
-      hotelRecommendations: [],
-      mustSeeAttractions: [],
-      budgetBreakdown: { totalCost: 0, remaining: 0 },
-    });
+    return JSON.parse(cleanup);
+  } catch (error) {
+    console.error('Invalid JSON:', error);
+    return {};
   }
 };
 
-// Function to generate itinerary
+// Replace the existing generateItinerary function
 export const generateItinerary = async (params: TripParams): Promise<ItineraryResponse> => {
   const groq = new Groq({
-    apiKey: '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', // Replace with your actual API key
+    apiKey: process.env.GROQ_API_KEY || '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',
     dangerouslyAllowBrowser: true,
   });
 
@@ -96,64 +99,39 @@ export const generateItinerary = async (params: TripParams): Promise<ItineraryRe
     });
 
     const parsed = JSON.parse(cleanJSON(message?.content || ''));
-
-    // Calculate daily budget
-    const dailyBudget = params.budget / params.duration;
-
-    // Generate daily itinerary
-    const dailyItinerary = Array.from({ length: params.duration }, (_, i) => {
-      const dayData = parsed.itinerary?.days?.[i] || {};
-      const activities = dayData.events?.map((event: any) => ({
-        time: event.time || 'all-day',
-        description: event.activity || `Day ${i + 1} activities to be planned`,
-        cost: event.cost || 0,
-      })) || [];
-
-      const totalActivityCost = activities.reduce((sum, activity) => sum + (activity.cost || 0), 0);
-
-      return {
-        day: i + 1,
-        activities,
-        budget: {
-          accommodation: dayData.accommodation?.cost || dailyBudget * 0.4,
-          food: dailyBudget * 0.2,
-          transportation: dailyBudget * 0.15,
-          activities: totalActivityCost || dailyBudget * 0.15,
-          total: dailyBudget,
-        },
-      };
-    });
-
-    // Generate hotel recommendations
-    const hotelRecommendations = (parsed.hotelRecommendations || []).slice(0, 3).map((h: any) => ({
-      name: h.name || 'Standard Hotel',
-      pricePerNight: Number(h.pricePerNight) || dailyBudget * 0.4,
-      location: h.location || params.destination,
-      rating: Math.min(Number(h.rating) || 3, 5),
-    }));
-
-    // Generate must-see attractions
-    const mustSeeAttractions = (parsed.mustSeeAttractions || []).slice(0, 5).map((a: any) => ({
-      name: a.name || 'Local Attraction',
-      estimatedCost: Number(a.estimatedCost) || dailyBudget * 0.1,
-      suggestedDuration: a.suggestedDuration || '1-2 hours',
-    }));
-
-    // Calculate budget breakdown
-    const totalCost = dailyItinerary.reduce(
-      (sum, day) => sum + day.budget.accommodation + day.budget.food + day.budget.transportation + day.budget.activities,
-      0
-    );
-    const remaining = params.budget - totalCost;
-
+    
+    // Map the API response to your interface
     return {
-      dailyItinerary,
-      hotelRecommendations,
-      mustSeeAttractions,
+      dailyItinerary: parsed.itinerary?.days?.map((day: any) => ({
+        day: day.day,
+        activities: day.events?.map((event: any) => ({
+          time: event.time,
+          description: event.activity,
+          cost: event.cost
+        })) || [getDefaultActivity(day.day)],
+        budget: {
+          accommodation: day.accommodation?.cost || 0,
+          food: day.events?.filter((e: any) => e.time.includes('meal')).reduce((sum: number, e: any) => sum + e.cost, 0) || 0,
+          transportation: day.events?.filter((e: any) => e.activity.includes('transport')).reduce((sum: number, e: any) => sum + e.cost, 0) || 0,
+          activities: day.events?.filter((e: any) => !e.activity.includes('transport') && !e.time.includes('meal')).reduce((sum: number, e: any) => sum + e.cost, 0) || 0,
+          total: (day.accommodation?.cost || 0) + (day.events?.reduce((sum: number, e: any) => sum + (e.cost || 0), 0) || 0)
+        }
+      })) || [],
+      hotelRecommendations: parsed.hotelRecommendations?.map((h: any) => ({
+        name: h.name || 'Standard Hotel',
+        pricePerNight: h.pricePerNight || params.budget * 0.4,
+        location: h.location || params.destination,
+        rating: Math.min(h.rating || 3, 5)
+      })) || [],
+      mustSeeAttractions: parsed.mustSeeAttractions?.map((a: any) => ({
+        name: a.name || 'Local Attraction',
+        estimatedCost: a.estimatedCost || params.budget * 0.1,
+        suggestedDuration: a.suggestedDuration || '1-2 hours'
+      })) || [],
       budgetBreakdown: {
-        totalCost,
-        remaining,
-      },
+        totalCost: parsed.itinerary?.total_cost || params.budget * 0.9,
+        remaining: params.budget - (parsed.itinerary?.total_cost || params.budget * 0.9)
+      }
     };
   } catch (error) {
     console.error('Error generating itinerary:', error);
