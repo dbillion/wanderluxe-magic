@@ -1,13 +1,10 @@
-
 import React from "react";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Globe2, Compass, Award } from "lucide-react";
-
 const Index = () => {
-  return (
-    <div className="min-h-screen">
+  return <div className="min-h-screen">
       <Navbar />
       
       {/* Hero Section */}
@@ -32,18 +29,14 @@ const Index = () => {
               </div>
             </div>
             <div className="flex-1">
-              <img
-                src="/lovable-uploads/56740bd4-c926-4550-bde0-74f949632112.png"
-                alt="Travel Planning"
-                className="rounded-lg shadow-2xl animate-fade-down"
-              />
+              <img src="/lovable-uploads/56740bd4-c926-4550-bde0-74f949632112.png" alt="Travel Planning" className="rounded-lg shadow-2xl animate-fade-down" />
             </div>
           </div>
         </div>
       </section>
 
       {/* Services Section */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 bg-yellow-800 hover:bg-yellow-700">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Your Journey Starts Here</h2>
@@ -105,8 +98,6 @@ const Index = () => {
           </Button>
         </div>
       </section>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
