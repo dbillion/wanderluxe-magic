@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ const Index = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false);
-    }, 5000); // Show splash for 5 seconds
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -118,22 +119,10 @@ const Index = () => {
                     </div>
                   </div>
                   <div className="flex-1">
-                    <WorldMap
-                      dots={[
-                        {
-                          start: { lat: 40.7128, lng: -74.0060 }, // New York
-                          end: { lat: 48.8566, lng: 2.3522 }, // Paris
-                        },
-                        {
-                          start: { lat: 35.6762, lng: 139.6503 }, // Tokyo
-                          end: { lat: -33.8688, lng: 151.2093 }, // Sydney
-                        },
-                        {
-                          start: { lat: 51.5074, lng: -0.1278 }, // London
-                          end: { lat: 25.2048, lng: 55.2708 }, // Dubai
-                        },
-                      ]}
-                      lineColor="#9b87f5"
+                    <img
+                      src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34"
+                      alt="Travel Destination"
+                      className="w-full h-auto rounded-lg shadow-xl"
                     />
                   </div>
                 </div>
@@ -141,7 +130,7 @@ const Index = () => {
             </section>
 
             {/* Services Section */}
-            <section className="bg-yellow-800 hover:bg-yellow-700 mx-0 my-[12px] px-[26px] py-[41px] rounded-none">
+            <section className="py-20 px-4">
               <div className="container mx-auto">
                 <div className="text-center mb-12">
                   <h2 className="text-3xl font-bold mb-4">Your Journey Starts Here</h2>
@@ -149,44 +138,23 @@ const Index = () => {
                 </div>
                 
                 <div className="grid md:grid-cols-3 gap-8">
-                  <Card className="p-6 hover-scale glass-card">
+                  <Card className="p-6 hover:scale-105 transition-transform">
                     <Globe2 className="w-12 h-12 text-primary mb-4" />
                     <h3 className="text-xl font-semibold mb-2">Seamless Ticket Booking</h3>
                     <p className="text-gray-600">Book flights easily with our user-friendly platform.</p>
                   </Card>
                   
-                  <Card className="p-6 hover-scale glass-card">
+                  <Card className="p-6 hover:scale-105 transition-transform">
                     <Compass className="w-12 h-12 text-primary mb-4" />
                     <h3 className="text-xl font-semibold mb-2">AI Travel Planning</h3>
                     <p className="text-gray-600">Get personalized itineraries crafted by our AI.</p>
                   </Card>
                   
-                  <Card className="p-6 hover-scale glass-card">
+                  <Card className="p-6 hover:scale-105 transition-transform">
                     <Award className="w-12 h-12 text-primary mb-4" />
                     <h3 className="text-xl font-semibold mb-2">Visa Assistance</h3>
                     <p className="text-gray-600">Streamlined visa process with expert guidance.</p>
                   </Card>
-                </div>
-              </div>
-            </section>
-
-            {/* Testimonials Section */}
-            <section className="py-20 px-4 bg-secondary">
-              <div className="container mx-auto">
-                <h2 className="text-3xl font-bold text-center mb-12">What Our Clients Say</h2>
-                <div className="grid md:grid-cols-3 gap-8">
-                  <Card className="p-6 glass-card">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-primary/20" />
-                      <div>
-                        <h4 className="font-semibold">John Doe</h4>
-                        <p className="text-sm text-gray-600">Student Traveler</p>
-                      </div>
-                    </div>
-                    <p className="text-gray-600">"The service was exceptional and saved me so much time!"</p>
-                  </Card>
-                  
-                  {/* Add more testimonials similarly */}
                 </div>
               </div>
             </section>
