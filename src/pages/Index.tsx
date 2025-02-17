@@ -1,14 +1,18 @@
+
 import React from "react";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Globe2, Compass, Award } from "lucide-react";
+import { WorldMap } from "@/components/ui/world-map";
+import { motion } from "framer-motion";
+
 const Index = () => {
   return <div className="min-h-screen">
       <Navbar />
       
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 bg-gradient-to-b from-secondary to-white py-[223px]">
+      <section className="pt-32 pb-20 px-4 bg-gradient-to-b from-secondary to-white">
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row items-center gap-12">
             <div className="flex-1 space-y-6 animate-fade-up">
@@ -29,7 +33,23 @@ const Index = () => {
               </div>
             </div>
             <div className="flex-1">
-              <img src="/lovable-uploads/56740bd4-c926-4550-bde0-74f949632112.png" alt="Travel Planning" className="rounded-lg shadow-2xl animate-fade-down" />
+              <WorldMap
+                dots={[
+                  {
+                    start: { lat: 40.7128, lng: -74.0060 }, // New York
+                    end: { lat: 48.8566, lng: 2.3522 }, // Paris
+                  },
+                  {
+                    start: { lat: 35.6762, lng: 139.6503 }, // Tokyo
+                    end: { lat: -33.8688, lng: 151.2093 }, // Sydney
+                  },
+                  {
+                    start: { lat: 51.5074, lng: -0.1278 }, // London
+                    end: { lat: 25.2048, lng: 55.2708 }, // Dubai
+                  },
+                ]}
+                lineColor="#9b87f5"
+              />
             </div>
           </div>
         </div>
@@ -100,4 +120,5 @@ const Index = () => {
       </section>
     </div>;
 };
+
 export default Index;
