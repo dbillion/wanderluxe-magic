@@ -1,6 +1,6 @@
-
 import React, { useState } from "react";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,7 +8,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Mail, Phone, MapPin, Send, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
@@ -19,12 +18,11 @@ const Contact = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const onSubmit = (data: any) => {
-    // Email option
-    window.location.href = `mailto:contact@wanderluxe.com?subject=New Contact Form Submission&body=Name: ${data.name}%0D%0AEmail: ${data.email}%0D%0AMessage: ${data.message}`;
+    // Format email body
+    const emailBody = `Name: ${data.name}%0D%0AEmail: ${data.email}%0D%0AMessage: ${data.message}`;
     
-    // WhatsApp option
-    // const whatsappMessage = `Name: ${data.name}%0AEmail: ${data.email}%0AMessage: ${data.message}`;
-    // window.open(`https://wa.me/1234567890?text=${whatsappMessage}`, '_blank');
+    // Open Gmail with pre-filled details
+    window.location.href = `mailto:dgsgsj@gmail.com?subject=New Contact Form Submission&body=${emailBody}`;
     
     setIsDialogOpen(true);
   };
@@ -55,7 +53,7 @@ const Contact = () => {
           >
             <Mail className="w-10 h-10 text-primary mb-4" />
             <h3 className="text-xl font-semibold mb-2">Email Us</h3>
-            <p className="text-gray-600">contact@wanderluxe.com</p>
+            <p className="text-gray-600">dgsgsj@gmail.com</p>
           </motion.div>
 
           <motion.div 
@@ -145,12 +143,13 @@ const Contact = () => {
             <DialogHeader>
               <DialogTitle>Message Sent!</DialogTitle>
               <DialogDescription>
-                Thank you for contacting us. We'll get back to you shortly.
+                Thank you for contacting us. Your email client will open to send your message.
               </DialogDescription>
             </DialogHeader>
           </DialogContent>
         </Dialog>
       </div>
+      <Footer />
     </div>
   );
 };
