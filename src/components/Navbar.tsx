@@ -49,8 +49,11 @@ const Navbar = () => {
                     <ListItem href="/tickets" title="Ticket Booking">
                       Find and book the best deals on flights and accommodations.
                     </ListItem>
-                    <ListItem href="/visa" title="Visa Services">
-                      Streamlined visa application process for hassle-free travel.
+                    <ListItem href="/visa/student" title="Student Visa">
+                      Complete assistance for student visa applications and documentation.
+                    </ListItem>
+                    <ListItem href="/visa/business" title="Business Visa">
+                      Expert support for business travel visa processing.
                     </ListItem>
                   </ul>
                 </NavigationMenuContent>
