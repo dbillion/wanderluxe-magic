@@ -10,7 +10,7 @@ interface TripParams {
 
 export const generateItinerary = async (params: TripParams): Promise<string> => {
   const groq = new Groq({
-    apiKey: "gsk_vwDts9X7AUmEY5BItsRDUldBmzlgYP8mkKuUi8aX",
+    apiKey: "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",
     dangerouslyAllowBrowser: true
   });
 
